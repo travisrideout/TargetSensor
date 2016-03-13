@@ -64,4 +64,6 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 #include <..\TargetSensor\TargetSensor.ino>
+#include <..\TargetSensor\TargetComs.cpp>
+#include <..\TargetSensor\TargetComs.h>
 #endif
