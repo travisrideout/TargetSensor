@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TargetSensor.ino" />
+    <None Include="MeshGateway.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.TargetSensor.vsarduino.h">
+    <ClInclude Include="__vm\.MeshGateway.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

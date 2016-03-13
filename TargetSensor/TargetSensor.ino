@@ -1,5 +1,5 @@
-#include "TargetComs.h"
-#include <RF24.h>
+#include <TargetComsLib.h>
+#include "RF24.h"
 #include "RF24Network.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
@@ -10,17 +10,19 @@ const int ledGreen = 5;
 const int ledBlue = 6;
 const int impactSensor = A0;
 
-uint32_t displayTimer = 0;
-int delayTime = 10;
-int debounce = 1000;	//debounce delay in milliseconds
+unsigned long heartbeatTimer = 0;	//time counter for heartbeat message check
+unsigned int heartbeatDelay = 10000;	//interval at which to check gateway heartbeat, ms
+unsigned short debounce = 100;	//debounce delay in milliseconds
    
 int sensorValue = 0;
 float sensorVolts = 0;
 float threshold = 1.5;	//threshold sensor voltage
 
-bool connectingLED = false;
+bool heartbeat = false;
+unsigned long heartbeatCount;
 
-targetData td;
+targetData td;	//transmit data
+targetData rd;	//recieve data
 
 /**** Configure the nrf24l01 CE and CS pins ****/
 RF24 radio(7, 8);
@@ -43,67 +45,94 @@ void setup() {
 	pinMode(ledGreen, OUTPUT);
 	pinMode(ledBlue, OUTPUT);
 
-	Serial.begin(115200);
-	// Set the nodeID manually
-	mesh.setNodeID(nodeID);
-	// Connect to the mesh
-	Serial.println(F("Connecting to the mesh..."));
-	mesh.begin();
-	Serial.println(F("Initializing data"));
-	initData(&td);	//get some values in data
+	initData(&td);	//Initialize transmit data packet
+	initData(&rd);	//Initialize recieve data packet
+
+	Serial.begin(115200);	
+	mesh.setNodeID(nodeID);	// Set the nodeID manually	
+	Serial.println("Connecting to the mesh...");
+	mesh.begin();	// Connect to the mesh	
 }
 
 void loop() {
-	Serial.println(F("1"));
-	//mesh.update();
-	Serial.println(F("2"));
+	mesh.update();
 
-	// Send to the master node every second
-	if (millis() - displayTimer >= 1000) {
-		displayTimer = millis();
-		connectingLedFlash();
-
-		// Send an 'M' type message containing the current millis()
-		if (!mesh.write(&displayTimer, 'M', sizeof(displayTimer))) {
-
-			// If a write fails, check connectivity to the mesh network
-			if (!mesh.checkConnection()) {
-				//refresh the network address
-				Serial.println("Renewing Address");
-				mesh.renewAddress();
-			}
-			else {
-				Serial.println("Send fail, Test OK");
-			}
+	//check Gateway heartbeat
+	if (millis() - heartbeatTimer > heartbeatDelay) {
+		heartbeatTimer = millis();
+		if (!heartbeat) {
+			Serial.println("No heartbeat detected!");
+			meshConnectionTest();
 		}
-		else {
-			Serial.print("Send OK: "); Serial.println(displayTimer);
-		}
+		heartbeat = false;
 	}
-	//analogWrite(ledRed, 0);
 
+	sensorValue = analogRead(impactSensor);	//read analog pin, connected to piezo impact sensor circuit
+	sensorVolts = sensorValue * (3.3 / 1023.0);	//convert read value to volts
+	if (sensorVolts > threshold) {	//if sensor reading greater than threshold tell gateway target hit
+		analogWrite(ledGreen, 0);
+		td.targetHit = true;
+	}
+
+	//--------------------------------------------------------------
+	//TX - message transmit section
+	//--------------------------------------------------------------
+
+	//if target hit send message
+	if(td.targetHit){		
+		if (!mesh.write(&td, 'D', sizeof(td))) {	
+			Serial.println("Message write failed");			
+			meshConnectionTest();
+		} else {
+			Serial.print("Transmitted message:");
+			printPacket(&td);
+			td.packNum++;		
+			delay(debounce);	//allow impact sensor signal to settle
+			td.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
+		}		
+	} 	
+	
+
+	// End - TX - message transmit section
+	//--------------------------------------------------------------
+	
+
+	//--------------------------------------------------------------
+	//RX - message read section
+	//--------------------------------------------------------------
 	while (network.available()) {
 		RF24NetworkHeader header;
-		network.read(header, &td, sizeof(td));
-		printPacket(&td);
-
-		sensorValue = analogRead(impactSensor);	//read analog pin, connected to piezo impact sensor circuit
-		sensorVolts = sensorValue * (3.3 / 1023.0);	//convert read value to volts
-
-		//if sensor reading greater than threshhold turn off external LED, on internal LED, wait debounce, 
-		if (sensorVolts > threshold) {
-			digitalWrite(13, HIGH);
-			digitalWrite(2, LOW);
-			delay(debounce);
-		}
+		network.peek(header);
+		switch (header.type) {
+			case 'D':
+				network.read(header, &rd, sizeof(rd));
+				Serial.print("Recieved message:");
+				printPacket(&rd);
+				if (rd.turnTargetOn) {
+					analogWrite(ledGreen, 255);
+				}
+				break;
+			case 'H':
+				network.read(header, &heartbeatCount, sizeof(heartbeatCount));
+				Serial.print("Recieved heartbeat: ");
+				Serial.println(heartbeatCount);
+				heartbeat = true;
+				break;
+			default:
+				break;
+		}		
 	}	
-}
+	//END - RX - message read section
+	//--------------------------------------------------------------
+}	//END loop
 
-void connectingLedFlash() {
-	connectingLED = !connectingLED;
-	if (connectingLED) {
-		analogWrite(ledRed, 255);
+void meshConnectionTest() {
+	if (!mesh.checkConnection()) {
+		Serial.println("Mesh Connection Test: Fail");
+		Serial.println("Renewing Address");	//refresh the network address
+		mesh.renewAddress(5000);
+		Serial.println(mesh.mesh_address);
 	} else {
-		analogWrite(ledRed, 0);
+		Serial.println("Mesh Connection Test: Pass");
 	}
 }

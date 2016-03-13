@@ -63,5 +63,5 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portOutputRegister(P)
 #define portInputRegister(P)
 #define portModeRegister(P)
-#include <..\TargetSensor\TargetSensor.ino>
+#include <..\MeshGateway\MeshGateway.ino>
 #endif
