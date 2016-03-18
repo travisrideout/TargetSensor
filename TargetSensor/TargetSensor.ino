@@ -1,4 +1,4 @@
-#include <TargetComsLib.h>
+#include <TargetComs.h>
 #include "RF24.h"
 #include "RF24Network.h"
 #include "RF24Mesh.h"
@@ -10,19 +10,13 @@ const int ledGreen = 5;
 const int ledBlue = 6;
 const int impactSensor = A0;
 
-unsigned long heartbeatTimer = 0;	//time counter for heartbeat message check
-unsigned int heartbeatDelay = 10000;	//interval at which to check gateway heartbeat, ms
 unsigned short debounce = 100;	//debounce delay in milliseconds
    
 int sensorValue = 0;
 float sensorVolts = 0;
 float threshold = 1.5;	//threshold sensor voltage
 
-bool heartbeat = false;
-unsigned long heartbeatCount;
-
-targetData td;	//transmit data
-targetData rd;	//recieve data
+TargetComs tc;
 
 /**** Configure the nrf24l01 CE and CS pins ****/
 RF24 radio(7, 8);
@@ -45,85 +39,31 @@ void setup() {
 	pinMode(ledGreen, OUTPUT);
 	pinMode(ledBlue, OUTPUT);
 
-	initData(&td);	//Initialize transmit data packet
-	initData(&rd);	//Initialize recieve data packet
-
 	Serial.begin(115200);	
 	mesh.setNodeID(nodeID);	// Set the nodeID manually	
 	Serial.println("Connecting to the mesh...");
 	mesh.begin();	// Connect to the mesh	
+
+	tc.resetWatchdog();
 }
 
 void loop() {
 	mesh.update();
 
-	//check Gateway heartbeat
-	if (millis() - heartbeatTimer > heartbeatDelay) {
-		heartbeatTimer = millis();
-		if (!heartbeat) {
-			Serial.println("No heartbeat detected!");
-			meshConnectionTest();
-		}
-		heartbeat = false;
+	if (tc.checkWatchdog()) {
+		Serial.println("No heartbeat detected!");
+		meshConnectionTest();
 	}
 
 	sensorValue = analogRead(impactSensor);	//read analog pin, connected to piezo impact sensor circuit
 	sensorVolts = sensorValue * (3.3 / 1023.0);	//convert read value to volts
 	if (sensorVolts > threshold) {	//if sensor reading greater than threshold tell gateway target hit
 		analogWrite(ledGreen, 0);
-		td.targetHit = true;
+		tc.transmitData.targetHit = true;
 	}
 
-	//--------------------------------------------------------------
-	//TX - message transmit section
-	//--------------------------------------------------------------
-
-	//if target hit send message
-	if(td.targetHit){		
-		if (!mesh.write(&td, 'D', sizeof(td))) {	
-			Serial.println("Message write failed");			
-			meshConnectionTest();
-		} else {
-			Serial.print("Transmitted message:");
-			printPacket(&td);
-			td.packNum++;		
-			delay(debounce);	//allow impact sensor signal to settle
-			td.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
-		}		
-	} 	
-	
-
-	// End - TX - message transmit section
-	//--------------------------------------------------------------
-	
-
-	//--------------------------------------------------------------
-	//RX - message read section
-	//--------------------------------------------------------------
-	while (network.available()) {
-		RF24NetworkHeader header;
-		network.peek(header);
-		switch (header.type) {
-			case 'D':
-				network.read(header, &rd, sizeof(rd));
-				Serial.print("Recieved message:");
-				printPacket(&rd);
-				if (rd.turnTargetOn) {
-					analogWrite(ledGreen, 255);
-				}
-				break;
-			case 'H':
-				network.read(header, &heartbeatCount, sizeof(heartbeatCount));
-				Serial.print("Recieved heartbeat: ");
-				Serial.println(heartbeatCount);
-				heartbeat = true;
-				break;
-			default:
-				break;
-		}		
-	}	
-	//END - RX - message read section
-	//--------------------------------------------------------------
+	transmit();
+	receive();
 }	//END loop
 
 void meshConnectionTest() {
@@ -134,5 +74,48 @@ void meshConnectionTest() {
 		Serial.println(mesh.mesh_address);
 	} else {
 		Serial.println("Mesh Connection Test: Pass");
+	}
+}
+
+//TX - message transmit section
+void transmit() {
+	//if target hit send message
+	if (tc.transmitData.targetHit) {
+		if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
+			Serial.println("Message write failed");
+			meshConnectionTest();
+		} else {
+			Serial.print("Transmitted message:");
+			tc.printPacket(&tc.transmitData);
+			tc.transmitData.packNum++;
+			delay(debounce);	//allow impact sensor signal to settle
+			tc.transmitData.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
+		}
+	}
+}
+
+//RX - message read section
+void receive() {	
+	while (network.available()) {
+		RF24NetworkHeader header;
+		network.peek(header);
+		switch (header.type) {
+			case 'D':
+				network.read(header, &tc.receiveData, sizeof(tc.receiveData));
+				Serial.print("Received message:");
+				tc.printPacket(&tc.receiveData);
+				if (tc.receiveData.turnTargetOn) {
+					analogWrite(ledGreen, 255);
+				}
+				break;
+			case 'H':
+				network.read(header, &tc.heartbeatCount, sizeof(tc.heartbeatCount));
+				Serial.print("Received heartbeat: ");
+				Serial.println(tc.heartbeatCount);
+				tc.heartbeat = true;
+				break;
+			default:
+				break;
+		}
 	}
 }
