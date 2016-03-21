@@ -47,7 +47,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\user\documents\visual studio 2015\Projects\TargetSensor\TargetSensor;C:\Program Files\Arduino\hardware\arduino\avr\libraries\EEPROM;C:\Program Files\Arduino\hardware\arduino\avr\libraries\EEPROM\utility;C:\Users\user\Documents\Arduino\libraries\RF24-master;C:\Users\user\Documents\Arduino\libraries\RF24-master\utility;C:\Users\user\Documents\Arduino\libraries\RF24Mesh-master;C:\Users\user\Documents\Arduino\libraries\RF24Mesh-master\utility;C:\Users\user\Documents\Arduino\libraries\RF24Network-master;C:\Users\user\Documents\Arduino\libraries\RF24Network-master\utility;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI\utility;C:\Users\user\Documents\Arduino\libraries\TargetComs;C:\Users\user\Documents\Arduino\libraries\TargetComs\utility;C:\Program Files\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\libraries;C:\Program Files\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\qtphktgm.qpf\Micro Platforms\default\debuggers;C:\Users\user\Documents\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\user\Documents\Arduino\libraries\TargetComs;C:\Users\user\Documents\Arduino\libraries\RF24-master;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI;C:\Users\user\Documents\Arduino\libraries\RF24Network-master;C:\Users\user\Documents\Arduino\libraries\RF24Mesh-master;C:\Program Files\Arduino\hardware\arduino\avr\libraries\EEPROM;C:\Program Files\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\libraries;C:\Program Files\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\qtphktgm.qpf\Micro Platforms\default\debuggers;C:\Users\user\Documents\Arduino\libraries;C:\Users\user\Documents\Arduino\libraries\RF24-master\utility;C:\Program Files\Arduino\hardware\tools\avr/avr/include/;C:\Program Files\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\user\Documents\Visual Studio 2015\Projects\TargetSensor\TargetSensor;C:\Users\user\Documents\Arduino\libraries\BatteryMgt;C:\Users\user\Documents\Arduino\libraries\BatteryMgt\utility;C:\Users\user\Documents\Arduino\libraries\RF24-master;C:\Users\user\Documents\Arduino\libraries\RF24-master\utility;C:\Users\user\Documents\Arduino\libraries\RF24Mesh-master;C:\Users\user\Documents\Arduino\libraries\RF24Mesh-master\utility;C:\Users\user\Documents\Arduino\libraries\RF24Network-master;C:\Users\user\Documents\Arduino\libraries\RF24Network-master\utility;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI\utility;C:\Users\user\Documents\Arduino\libraries\TargetComs;C:\Users\user\Documents\Arduino\libraries\TargetComs\utility;C:\Program Files\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\libraries;C:\Program Files\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\qtphktgm.qpf\Micro Platforms\default\debuggers;C:\Users\user\Documents\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\user\Documents\Arduino\libraries\TargetComs;C:\Program Files\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files\Arduino\libraries;C:\Program Files\Arduino\hardware\arduino\avr\libraries;C:\Program Files\Microsoft Visual Studio 14.0\Common7\IDE\Extensions\qtphktgm.qpf\Micro Platforms\default\debuggers;C:\Users\user\Documents\Arduino\libraries;C:\Program Files\Arduino\hardware\tools\avr/avr/include/;C:\Program Files\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\user\documents\visual studio 2015\Projects\TargetSensor\TargetSensor\__vm\.TargetSensor.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=8000000L;ARDUINO=10607;ARDUINO_AVR_PRO;ARDUINO_ARCH_AVR;__cplusplus=201103L;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -71,12 +71,78 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_pulse.S" />
     <None Include="TargetSensor.ino">
       <FileType>CppCode</FileType>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Arduino.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\binary.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Client.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial_private.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\IPAddress.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\new.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\PluggableUSB.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Print.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Printable.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Server.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Stream.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Udp.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\USBAPI.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\USBCore.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\USBDesc.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\WCharacter.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_private.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\WString.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\libraries\SPI\SPI.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\variants\eightanaloginputs\pins_arduino.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\BatteryMgt\BatteryMgt.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24-master\nRF24L01.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24-master\printf.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24-master\RF24.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24-master\RF24_config.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24Mesh-master\RF24Mesh.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24Mesh-master\RF24Mesh_config.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24Network-master\RF24Network.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24Network-master\RF24Network_config.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\RF24Network-master\Sync.h" />
+    <ClInclude Include="..\..\..\..\Arduino\libraries\TargetComs\TargetComs.h" />
     <ClInclude Include="__vm\.TargetSensor.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\abi.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\CDC.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial0.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial1.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial2.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\HardwareSerial3.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\hooks.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\IPAddress.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\main.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\new.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\PluggableUSB.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Print.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Stream.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\Tone.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\USBCore.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\WInterrupts.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_analog.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_digital.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_pulse.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\wiring_shift.c" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\WMath.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\cores\arduino\WString.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\Program Files\Arduino\hardware\arduino\avr\libraries\SPI\SPI.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\BatteryMgt\BatteryMgt.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\RF24-master\RF24.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\RF24Mesh-master\RF24Mesh.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\RF24Network-master\RF24Network.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\RF24Network-master\Sync.cpp" />
+    <ClCompile Include="..\..\..\..\Arduino\libraries\TargetComs\TargetComs.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

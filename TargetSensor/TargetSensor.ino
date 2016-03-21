@@ -1,15 +1,16 @@
+#include <BatteryMgt.h>
 #include <TargetComs.h>
 #include "RF24.h"
 #include "RF24Network.h"
 #include "RF24Mesh.h"
 #include <SPI.h>
-#include <EEPROM.h>
 
 const int ledRed = 3;
 const int ledGreen = 5;
 const int ledBlue = 6;
 const int impactSensor = A0;
 
+unsigned long debouceSetTime = 0;
 unsigned short debounce = 100;	//debounce delay in milliseconds
    
 int sensorValue = 0;
@@ -17,6 +18,7 @@ float sensorVolts = 0;
 float threshold = 1.5;	//threshold sensor voltage
 
 TargetComs tc;
+BatteryMgt batt;
 
 /**** Configure the nrf24l01 CE and CS pins ****/
 RF24 radio(7, 8);
@@ -27,7 +29,7 @@ RF24Mesh mesh(radio, network);
 * User Configuration: nodeID - A unique identifier for each radio. Allows addressing
 * to change dynamically with physical changes to the mesh.
 *
-* In this example, configuration takes place below, prior to uploading the sketch to the device
+* Configuration takes place below, prior to uploading the sketch to the device
 * A unique value from 1-255 must be configured for each node.
 * This will be stored in EEPROM on AVR devices, so remains persistent between further uploads, loss of power, etc.
 *
@@ -57,40 +59,46 @@ void loop() {
 
 	sensorValue = analogRead(impactSensor);	//read analog pin, connected to piezo impact sensor circuit
 	sensorVolts = sensorValue * (3.3 / 1023.0);	//convert read value to volts
-	if (sensorVolts > threshold) {	//if sensor reading greater than threshold tell gateway target hit
+	//if sensor reading greater than threshold and not debouncing tell gateway target hit
+	if (sensorVolts > threshold && (millis() - debouceSetTime > debounce)) {
 		analogWrite(ledGreen, 0);
 		tc.transmitData.targetHit = true;
+		debouceSetTime = millis();
 	}
 
-	transmit();
+	//if target hit send message
+	if (tc.transmitData.targetHit) {
+		transmit();
+	}
 	receive();
+
+	batt.scheduledCheckBatteryVolts(&tc.transmitData.batVolts, 5000);
+	if (tc.transmitData.batVolts < 2900) {
+		batt.lowBattWarningLED(ledRed);
+	}
 }	//END loop
 
 void meshConnectionTest() {
 	if (!mesh.checkConnection()) {
-		Serial.println("Mesh Connection Test: Fail");
-		Serial.println("Renewing Address");	//refresh the network address
-		mesh.renewAddress(5000);
-		Serial.println(mesh.mesh_address);
+		Serial.println("Mesh Connection Test: Fail");		
 	} else {
 		Serial.println("Mesh Connection Test: Pass");
 	}
+	Serial.println("Renewing Address");	//refresh the network address
+	mesh.renewAddress();
+	Serial.println(mesh.mesh_address);
 }
 
 //TX - message transmit section
 void transmit() {
-	//if target hit send message
-	if (tc.transmitData.targetHit) {
-		if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
-			Serial.println("Message write failed");
-			meshConnectionTest();
-		} else {
-			Serial.print("Transmitted message:");
-			tc.printPacket(&tc.transmitData);
-			tc.transmitData.packNum++;
-			delay(debounce);	//allow impact sensor signal to settle
-			tc.transmitData.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
-		}
+	if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
+		Serial.println("Message write failed");
+		meshConnectionTest();
+	} else {
+		Serial.print("Transmitted message:");
+		tc.printPacket(&tc.transmitData);
+		tc.transmitData.packNum++;
+		tc.transmitData.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
 	}
 }
 
@@ -115,6 +123,7 @@ void receive() {
 				tc.heartbeat = true;
 				break;
 			default:
+				Serial.print("Undefined data type");
 				break;
 		}
 	}

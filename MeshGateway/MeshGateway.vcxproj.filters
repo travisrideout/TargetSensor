@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MeshGateway.ino" />
+    <None Include="BLE_Config.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.MeshGateway.vsarduino.h">
