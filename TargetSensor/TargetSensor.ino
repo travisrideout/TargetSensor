@@ -46,6 +46,7 @@ void setup() {
 	Serial.println("Connecting to the mesh...");
 	mesh.begin();	// Connect to the mesh	
 
+	tc.transmitData.nodeId = nodeID;
 	tc.resetWatchdog();
 }
 
@@ -60,23 +61,34 @@ void loop() {
 	sensorValue = analogRead(impactSensor);	//read analog pin, connected to piezo impact sensor circuit
 	sensorVolts = sensorValue * (3.3 / 1023.0);	//convert read value to volts
 	//if sensor reading greater than threshold and not debouncing tell gateway target hit
+	threshold = (tc.transmitData.batVolts / 1000) * (tc.receiveData.impactThresh / 100);
 	if (sensorVolts > threshold && (millis() - debouceSetTime > debounce)) {
-		analogWrite(ledGreen, 0);
+		ledOff();
 		tc.transmitData.targetHit = true;
+		transmit();
 		debouceSetTime = millis();
 	}
 
-	//if target hit send message
-	if (tc.transmitData.targetHit) {
-		transmit();
-	}
 	receive();
 
-	batt.scheduledCheckBatteryVolts(&tc.transmitData.batVolts, 5000);
+	batt.scheduledCheckBatteryVolts(&tc.transmitData.batVolts);
 	if (tc.transmitData.batVolts < 2900) {
 		batt.lowBattWarningLED(ledRed);
+		sendError(tc.errorCode.nodeBattLow);
 	}
 }	//END loop
+
+void ledOn() {
+	analogWrite(ledRed, tc.receiveData.ledColor[0]);
+	analogWrite(ledGreen, tc.receiveData.ledColor[1]);
+	analogWrite(ledBlue, tc.receiveData.ledColor[2]);
+}
+
+void ledOff() {
+	analogWrite(ledRed, 0);
+	analogWrite(ledGreen, 0);
+	analogWrite(ledBlue, 0);
+}
 
 void meshConnectionTest() {
 	if (!mesh.checkConnection()) {
@@ -91,13 +103,12 @@ void meshConnectionTest() {
 
 //TX - message transmit section
 void transmit() {
-	if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
+	if (!mesh.write(&tc.transmitData, nodeData, sizeof(tc.transmitData))) {
 		Serial.println("Message write failed");
 		meshConnectionTest();
 	} else {
 		Serial.print("Transmitted message:");
 		tc.printPacket(&tc.transmitData);
-		tc.transmitData.packNum++;
 		tc.transmitData.targetHit = false;	//Gateway got hit message so turn it off, else keep sending message		
 	}
 }
@@ -106,25 +117,28 @@ void transmit() {
 void receive() {	
 	while (network.available()) {
 		RF24NetworkHeader header;
-		network.peek(header);
-		switch (header.type) {
-			case 'D':
-				network.read(header, &tc.receiveData, sizeof(tc.receiveData));
-				Serial.print("Received message:");
-				tc.printPacket(&tc.receiveData);
-				if (tc.receiveData.turnTargetOn) {
-					analogWrite(ledGreen, 255);
-				}
-				break;
-			case 'H':
-				network.read(header, &tc.heartbeatCount, sizeof(tc.heartbeatCount));
-				Serial.print("Received heartbeat: ");
-				Serial.println(tc.heartbeatCount);
-				tc.heartbeat = true;
-				break;
-			default:
-				Serial.print("Undefined data type");
-				break;
-		}
+		network.read(header, &tc.receiveData, sizeof(tc.receiveData));
+		Serial.print("Received message:");
+		tc.printPacket(&tc.receiveData);
+		parseReceiveData();
 	}
+}
+
+void parseReceiveData() {
+	tc.transmitData.ledColor[0] = tc.receiveData.ledColor[0];
+	tc.transmitData.ledColor[1] = tc.receiveData.ledColor[1];
+	tc.transmitData.ledColor[2] = tc.receiveData.ledColor[2];	
+	if (tc.receiveData.turnTargetOn) {
+		ledOn();
+	}
+	tc.transmitData.impactThresh = tc.receiveData.impactThresh;
+	if (tc.receiveData.heartbeat) {
+		tc.heartbeat = tc.receiveData.heartbeat;
+	}	
+}
+
+void sendError(byte errorCode) {
+	tc.transmitData.error = errorCode;
+	transmit();
+	tc.transmitData.error = tc.errorCode.noError;
 }

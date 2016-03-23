@@ -14,23 +14,29 @@ unsigned long targetRefreshTimer = 0;
 TargetComs tc;
 BatteryMgt batt;
 
+targetData gwReceiveData;
+targetData gwTransmitData;
+
 /***** Configure the chosen CE,CS pins *****/
 RF24 radio(7, 8);
 RF24Network network(radio);
 RF24Mesh mesh(radio, network);
+
+#define nodeID 0	//nodeID 0 for the master node
 
 void setup() {
 	pinMode(ledRed, OUTPUT);
 	pinMode(ledGreen, OUTPUT);
 	pinMode(ledBlue, OUTPUT);
 
-	pinMode(0, INPUT_PULLUP); // just a precaution for BLE module
+	pinMode(0, INPUT_PULLUP); // just a precaution for BLE module	
 
 	Serial.begin(115200);	
-	mesh.setNodeID(0);	// Set the nodeID to 0 for the master node	
-	Serial.println("Connecting to the mesh...");
+	mesh.setNodeID(nodeID);		
+	//Serial.println("Connecting to the mesh...");
 	mesh.begin();	// Connect to the mesh
 
+	gwTransmitData.nodeId = nodeID;
 	tc.watchdogTimeout = 9000;	//set watchdog to 9sec, less than the default 10sec the sensors time on
 	tc.resetWatchdog();
 }
@@ -40,11 +46,12 @@ void loop() {
 	mesh.DHCP();	// Assign addresses to the sensor nodes if requested
 
 	//Check if there are nodes connected
-	//TODO: send error code, check on delay
+	//TODO: send error code on delay
 	if (mesh.addrListTop > 0) {
 		tc.nodesAvailable = true;
 	} else {
 		tc.nodesAvailable = false;
+		sendError(&gwTransmitData, tc.errorCode.noNodesConnected);
 	}
 
 	//send heartbeat message to each node
@@ -65,75 +72,39 @@ void loop() {
 		targetRefreshTimer = millis();
 	}
 
-	//serialUI();		//allow user input from serial for debug
 	meshReceive();	
 	bleReceive();
 
 	//Check battery voltage
-	batt.scheduledCheckBatteryVolts(&tc.transmitData.batVolts);
-	if (tc.transmitData.batVolts < 2900) {
+	batt.scheduledCheckBatteryVolts(&gwTransmitData.batVolts);
+	if (gwTransmitData.batVolts < 2900) {
 		batt.lowBattWarningLED(ledRed);
+		sendError(&gwTransmitData, tc.errorCode.nodeBattLow);
 	}
 }	//END loop()
 
-//send message of type header to all nodes connected to mesh
+//send message to all nodes connected to mesh
 void sendAllNodes() {
 	if (tc.nodesAvailable) {
 		for (int i = 0; i < mesh.addrListTop; i++) {
 			tc.transmitData.nodeId = mesh.getNodeID(mesh.addrList[i].address);			
-			meshTransmit();
+			meshTransmit(&tc.transmitData);
 		}
 	}	
 }
 
-//TODO: wrap this into a debug message
-//void serialUI() {
-//	if (Serial.available()) {
-//		char c = toupper(Serial.read());
-//		if (c == 'S') {
-//			Serial.print(F("Turning on LED"));
-//			tc.transmitData.turnTargetOn = true;
-//			analogWrite(ledRed, 255);
-//			if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
-//				Serial.println("Message write failed");
-//			} 
-//		}
-//		if (c == 'T') {
-//			Serial.print(F("Turning off LED"));
-//			tc.transmitData.turnTargetOn = false;
-//			analogWrite(ledRed, 0);
-//			if (!mesh.write(&tc.transmitData, 'D', sizeof(tc.transmitData))) {
-//				Serial.println("Message write failed");
-//			} 
-//		}
-//		if (c == 'N') {
-//			Serial.println(" ");
-//			Serial.println(F("********Assigned Addresses********"));
-//			for (int i = 0; i < mesh.addrListTop; i++) {
-//				Serial.print("NodeID: ");
-//				Serial.print(mesh.addrList[i].nodeID);
-//				Serial.print(" RF24Network Address: 0");
-//				Serial.println(mesh.addrList[i].address, OCT);
-//			}
-//			Serial.println(F("**********************************"));
-//		}
-//	}
-//}
-
 //TX - message transmit section
-void meshTransmit() {
-	if (!mesh.write(mesh.getAddress(tc.transmitData.nodeId), &tc.transmitData, nodeData, sizeof(tc.transmitData))) {
-		tc.transmitData.error = tc.errorCode.nodeUnresponsive;
-		tc.blePacketTransmit(&tc.transmitData);
+void meshTransmit(targetData* data) {
+	if (!mesh.write(mesh.getAddress(data->nodeId), &data, nodeData, sizeof(data))) {
+		sendError(data, tc.errorCode.nodeUnresponsive);
 	} 
 }
 
 //RX - message read section
 void meshReceive() {
 	// Check for incoming data from the sensors
-	if (network.available()) {
+	while (network.available()) {
 		RF24NetworkHeader header;
-		network.peek(header);
 		network.read(header, &tc.receiveData, sizeof(tc.receiveData));
 		tc.blePacketTransmit(&tc.receiveData);
 
@@ -151,7 +122,17 @@ void bleReceive() {
 			Serial.read();
 		} else {
 			Serial.readBytesUntil(tc.transmitData.terminator, tc.blePacket, nodePacketSize);
-			tc.blePacketReceive();
+			tc.blePacketReceive(&gwReceiveData);
+			if (gwReceiveData.nodeId != 0) {
+				meshTransmit(&gwReceiveData);
+			} else {
+				//TODO: handle gateway specific code here
+			}							
 		}	
 	}
+}
+
+void sendError(targetData *data, byte errorCode) {
+	data->error = errorCode;
+	tc.blePacketTransmit(data);
 }
